@@ -20,8 +20,20 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 args = None
 
 # list of series to never include
-BLACKLIST = ['Downton Abbey',
-             'Poldark (2015)'
+BLACKLIST = ['The Big Lez Show',
+             'Breaking Bad',
+             'Breathe',
+             'Devs',
+             'Fargo',
+             'George Carlin HBO Specials',
+             'The George Carlin Show',
+             'How It\'s Made',
+             'Louis C.K.',
+             'The Mandalorian',
+             'PBS Space Time',
+             'Succession',
+             'Yes Minister',
+             'Foundation (2021)'
              ]
 
 
@@ -69,12 +81,12 @@ def get_random_episodes(all_shows, n=10):
         else:
             show_episodes[show.title] = show.unwatched()
         # remove series 0 specials
-        while show_episodes[show.title][0].seasonNumber == 0:
-            season_episode = show_episodes[show.title][0].seasonEpisode
-            episode_title = show_episodes[show.title][0].seasonEpisode
-            show_episodes[show.title].pop(0)
-            logger.debug(f'get_random_episodes: Series 0 Episode Removed '
-                         f'{show.title} - {episode_title} - {season_episode}')
+#         while show_episodes[show.title][0].seasonNumber == 0:
+#             season_episode = show_episodes[show.title][0].seasonEpisode
+#             episode_title = show_episodes[show.title][0].seasonEpisode
+#             show_episodes[show.title].pop(0)
+#             logger.debug(f'get_random_episodes: Series 0 Episode Removed '
+#                          f'{show.title} - {episode_title} - {season_episode}')
     next_n = []
     while len(next_n) < n:
         show_name = random.choice(list(show_episodes.keys()))
@@ -118,15 +130,15 @@ def skipped_missing(show, episode):
             show.get(season=episode.seasonNumber, episode=episode.index-1)
             logger.debug(f'SKIP_CHECK: Passed')
             return False
-        elif episode.seasonNumber > 1:
-            previous_season_count = tvdb_season_count(show, season_num - 1)
-            if previous_season_count is None:
-                return False
-            logger.debug(f'SKIP_CHECK: Check previous Season for {show.title} S{season_num-1}E{previous_season_count}')
-            # check last episode of previous season
-            show.get(season=episode.seasonNumber - 1, episode=previous_season_count)
-            logger.debug(f'SKIP_CHECK: Passed')
-            return False
+#         elif episode.seasonNumber > 1:
+#             previous_season_count = tvdb_season_count(show, season_num - 1)
+#             if previous_season_count is None:
+#                 return False
+#             logger.debug(f'SKIP_CHECK: Check previous Season for {show.title} S{season_num-1}E{previous_season_count}')
+#             # check last episode of previous season
+#             show.get(season=episode.seasonNumber - 1, episode=previous_season_count)
+#             logger.debug(f'SKIP_CHECK: Passed')
+#             return False
         else:
             logger.debug(f'SKIP_CHECK: First Episode of First Season. {show.title} {season_num}')
             return False
