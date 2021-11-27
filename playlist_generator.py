@@ -1,13 +1,13 @@
 import argparse
 import random
-
+import os.path
 import certifi
 import requests
 from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 from plexapi.playlist import Playlist
 from plexapi.exceptions import NotFound
-import tvdb_api
+#import tvdb_api
 import re
 import logging
 import urllib3
@@ -20,21 +20,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 args = None
 
 # list of series to never include
-BLACKLIST = ['The Big Lez Show',
-             'Breaking Bad',
-             'Breathe',
-             'Devs',
-             'Fargo',
-             'George Carlin HBO Specials',
-             'The George Carlin Show',
-             'How It\'s Made',
-             'Louis C.K.',
-             'The Mandalorian',
-             'PBS Space Time',
-             'Succession',
-             'Yes Minister',
-             'Foundation (2021)'
-             ]
+
+if os.path.isfile("blacklist.txt"):
+	logger.info("Blacklist file was found.")
+	text_file = open("blacklist.txt", "r")
+	BLACKLIST = text_file.read().splitlines()
+	text_file.close()
+else:
+	logger.info("Blacklist file NOT found. Continuing without.")
+	BLACKLIST = []
 
 
 def get_args():
@@ -102,22 +96,22 @@ def get_random_episodes(all_shows, n=10):
             continue
     return next_n
 
-
-def tvdb_season_count(show, season):
-    tvdb_id = None
-    try:
-        logger.debug(f'TVDB: Getting show "{show.title}"')
-        tvdb_id = int(re.search('thetvdb://([0-9]+)?', show.guid).group(1))
-        if args.tvdb_api_key is None:
-            raise RuntimeError(f'TVDB now requires an API key.  Instructions on how to set it up are here:\n\n'
-                               f'https://koditips.com/create-tvdb-api-key-tv-database/')
-        tv = tvdb_api.Tvdb(language='en', apikey=args.tvdb_api_key)
-        season_list = tv[tvdb_id][season]
-        logger.debug(f'TVDB: Previous Season Length = {len(season_list)}')
-        return len(season_list)
-    except tvdb_api.tvdb_seasonnotfound:
-        logger.warning(f'TVDB: Unable to look up "{show.title}" ({tvdb_id})')
-        return None
+## TVDB Has been commented out
+# def tvdb_season_count(show, season):
+#     tvdb_id = None
+#     try:
+#         logger.debug(f'TVDB: Getting show "{show.title}"')
+#         tvdb_id = int(re.search('thetvdb://([0-9]+)?', show.guid).group(1))
+#         if args.tvdb_api_key is None:
+#             raise RuntimeError(f'TVDB now requires an API key.  Instructions on how to set it up are here:\n\n'
+#                                f'https://koditips.com/create-tvdb-api-key-tv-database/')
+#         tv = tvdb_api.Tvdb(language='en', apikey=args.tvdb_api_key)
+#         season_list = tv[tvdb_id][season]
+#         logger.debug(f'TVDB: Previous Season Length = {len(season_list)}')
+#         return len(season_list)
+#     except tvdb_api.tvdb_seasonnotfound:
+#         logger.warning(f'TVDB: Unable to look up "{show.title}" ({tvdb_id})')
+#         return None
 
 
 def skipped_missing(show, episode):

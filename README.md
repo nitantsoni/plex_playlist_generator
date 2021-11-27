@@ -48,3 +48,6 @@ e.g. `playlist_generator.py --server --baseurl "http://172.16.1.100:32400" --tok
 ### Authentication Token
 To get your Auth token, browse to an episode in the web UI. Click on the `...` video and select `Get Info`.  In the 
 popup window select `View XML` in the URL there is the `X-Plex-Token=XXXXXXXXXXXXXX`
+
+### Blacklist
+The Blacklist array has been moved to an external file. It is now read from blacklist.txt. A sample blacklist has been included. Add your shows here and rename it to "blacklist.txt"

@@ -1,0 +1,9 @@
+Show Name Here
+Second Show Name Here
+No Quotes or Commas or anything
+Just the show names
+In testing appostrophes seem to work fine and can be added without escaping
+That's a long show name
+Pretty weird too for a show name
+What do you think?
+What shows you gonna add here?
