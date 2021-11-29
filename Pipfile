@@ -7,7 +7,6 @@ verify_ssl = true
 
 [packages]
 plexapi = "*"
-tvdb_api = "*"
 
 [requires]
 python_version = "3"
