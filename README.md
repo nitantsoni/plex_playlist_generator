@@ -1,7 +1,7 @@
 # Plex Random Series Playlist Generator
 
 Simple script to generate a playlist on a plex server that randomises the series, but plays the episodes within that 
-series in order
+series in order.
 
 ##Usage
 ```
@@ -32,9 +32,7 @@ Plex Account Connection Method:
   --resource RESOURCE, -r RESOURCE   Resource Name (Plex Server Name)
 
 Episode Selection Behaviour:
-  --ignore-skipped      Don't test for missing episodes
-  --randomize           Randomize selected episodes, not next unwatched
-  --include-watched     include watched episodes (use with --randomize
+  --include-watched     include watched episodes, in random order
 ```
 ## Connection Methods
 ### Account
@@ -51,3 +49,9 @@ popup window select `View XML` in the URL there is the `X-Plex-Token=XXXXXXXXXXX
 
 ### Blacklist
 The Blacklist array has been moved to an external file. It is now read from blacklist.txt. A sample blacklist has been included. Add your shows here and rename it to "blacklist.txt"
+
+### Season 0 Specials Handling
+Episodes from Season 0 are now handled differently than the parent script. Incase the "Include Watched" option is selected, they are not added to the final playlist. Otherwise in normal mode, they are added once all other episodes have been marked as watched.
+
+### Episode Selection
+This now works differently from the parent script. The script will now ensure TV Shows are spaced out snd repetition is kept to a minimum. Each playlist entry will be from a different show if possible.

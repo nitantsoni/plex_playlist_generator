@@ -7,8 +7,6 @@ from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 from plexapi.playlist import Playlist
 from plexapi.exceptions import NotFound
-#import tvdb_api
-import re
 import logging
 import urllib3
 from collections import defaultdict
@@ -35,7 +33,7 @@ else:
 def get_args():
     parser = argparse.ArgumentParser(description='Create playlist of unwatched episodes from random shows '
                                                  'but in correct episode order.')
-    parser.add_argument('--name', help='Playlist Name', default='Random Season, Next Unwatched')
+    parser.add_argument('--name', help='Playlist Name', default='Next Unwatched TV Shows')
     parser.add_argument('--number', '-n', help='Number of episodes to add to play list', type=int, default=10)
     group_server = parser.add_argument_group('Server Connection Method')
     group_server.add_argument('--server', action='store_true', help='Server connection Method')
@@ -47,8 +45,7 @@ def get_args():
     group_account.add_argument('--password', '-p', help='Plex AccountPassword')
     group_account.add_argument('--resource', '-r', help='Resource Name (Plex Server Name)')
     group_behaviour = parser.add_argument_group('Episode Selection Behaviour')
-    group_behaviour.add_argument('--randomize', action='store_true', help='Randomize selected episodes, not next unwatched')
-    group_behaviour.add_argument('--include-watched', action='store_true', help='include watched episodes (use with --randomize')
+    group_behaviour.add_argument('--include-watched', action='store_true', help='include watched episodes, in random order')
     parser.add_argument('--debug', '-d', help='Debug Logging', action="store_true")
     return parser.parse_args()
 
@@ -56,11 +53,6 @@ def get_args():
 def get_random_episodes(all_shows, n=10):
     show_episodes = dict()
     for show in all_shows.all():
-        if args.include_watched is True:
-            if args.randomize is False:
-                logger.warning("Setting --randomized flag, or playlist will always start at Episode 1 for each series")
-                args.randomize = True
-
         if show.isWatched and args.include_watched is not True:
             continue
         if show.title in BLACKLIST:
@@ -68,18 +60,26 @@ def get_random_episodes(all_shows, n=10):
             continue
         if args.include_watched is True:
             show_episodes[show.title] = show.episodes()
+            # remove series 0 specials
+            while show_episodes[show.title][0].seasonNumber == 0:
+                season_episode = show_episodes[show.title][0].seasonEpisode
+                episode_title = show_episodes[show.title][0].seasonEpisode
+                show_episodes[show.title].pop(0)
+                logger.debug(f'get_random_episodes: Series 0 Episode Removed '
+                             f'{show.title} - {episode_title} - {season_episode}')
         else:
             show_episodes[show.title] = show.unwatched()
-        # Move season 0 specials to end of array
-        seasons_list = defaultdict(int)
-        for episode in show_episodes[show.title]:
-            seasons_list[episode.parentIndex] += 1
-        if len(seasons_list) > 1 and seasons_list[0] > 0:
-            while show_episodes[show.title][0].seasonNumber == 0:
-                show_episodes[show.title].append(show_episodes[show.title][0])
-                logger.debug(f'get_random_episodes: Series 0 Episode Appended to end of list'
-                             f'{show.title} - {show_episodes[show.title][0].seasonEpisode}')
-                show_episodes[show.title].pop(0)
+            # Move season 0 specials to end of array
+            seasons_list = defaultdict(int)
+            for episode in show_episodes[show.title]:
+                seasons_list[episode.parentIndex] += 1
+            if len(seasons_list) > 1 and seasons_list[0] > 0:
+                while show_episodes[show.title][0].seasonNumber == 0:
+                    show_episodes[show.title].append(show_episodes[show.title][0])
+                    logger.debug(f'get_random_episodes: Series 0 Episode Appended to end of list'
+                                 f'{show.title} - {show_episodes[show.title][0].seasonEpisode}')
+                    show_episodes[show.title].pop(0)
+        
             
             
     next_n = []
@@ -91,7 +91,7 @@ def get_random_episodes(all_shows, n=10):
             show_index = 0
         show_name = show_list[show_index]
         if len(show_episodes[show_name]) >0:
-            if args.randomize:
+            if args.include_watched:
                 random.shuffle(show_episodes[show_name])
             next_n.append(show_episodes[show_name].pop(0))
             show_index += 1
