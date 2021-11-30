@@ -47,9 +47,22 @@ def get_args():
     group_behaviour = parser.add_argument_group('Episode Selection Behaviour')
     group_behaviour.add_argument('--include-watched', action='store_true', help='include watched episodes, in random order')
     parser.add_argument('--debug', '-d', help='Debug Logging', action="store_true")
+    parser.add_argument('--scheduled', '-s', help='Run the script in scheduled job mode', action="store_true")
     return parser.parse_args()
 
-
+def playlist_uplayed_check(playlist_items):
+    num_watched = 0
+    for item in playlist_items:
+        if item.isWatched:
+                num_watched += 1
+    if num_watched > len(playlist_items) - 6:
+        logger.debug('5 or less unwatched episodes found')
+        return True
+    else:
+        logger.debug('More than 5 unwatched episodes found')
+        return False
+    
+    
 def get_random_episodes(all_shows, n=10):
     show_episodes = dict()
     for show in all_shows.all():
@@ -79,9 +92,6 @@ def get_random_episodes(all_shows, n=10):
                     logger.debug(f'get_random_episodes: Series 0 Episode Appended to end of list'
                                  f'{show.title} - {show_episodes[show.title][0].seasonEpisode}')
                     show_episodes[show.title].pop(0)
-        
-            
-            
     next_n = []
     show_index = 0
     show_list = list(show_episodes.keys())
@@ -117,26 +127,26 @@ def main():
         baseurl = args.baseurl
         token = args.token
         session = requests.session()
-        session.verify = False
+        # disables HTTP Cert verification
+#         session.verify = False 
         logger.debug(session.verify)
         plex = PlexServer(baseurl, token, session)
     else:
         exit(1)
+    should_run = True
+    if args.scheduled:
+    	should_run = playlist_uplayed_check(plex.playlist(title=args.name).items())
 
-    all_shows = plex.library.section('TV Shows')
-
-    episodes = get_random_episodes(all_shows, n=args.number)
-    for episode in episodes:
-        season_episode = episode.seasonEpisode
-        print(f'{episode.grandparentTitle} - {episode.parentTitle} - '
-              f'{episode.index}. {episode.title}')
-
-    try:
-        plex.playlist(title=args.name).delete()
-    except NotFound as e:
-        logger.debug(f"Playlist {args.name} does not exist to delete.")
-    Playlist.create(server=plex, title=args.name, items=episodes)
-
-
+    if should_run:
+        episodes = get_random_episodes(plex.library.section('TV Shows'), args.number)
+        for episode in episodes:
+            print(f'{episode.grandparentTitle} - {episode.parentTitle} - '
+                  f'{episode.index}. {episode.title}')    
+        try:
+            plex.playlist(title=args.name).delete()
+        except NotFound as e:
+            logger.debug(f"Playlist {args.name} does not exist to delete.")
+        Playlist.create(server=plex, title=args.name, items=episodes)
+    print('Exiting')
 if __name__ == '__main__':
     main()

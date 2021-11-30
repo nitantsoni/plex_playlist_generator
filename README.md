@@ -19,6 +19,7 @@ optional arguments:
   --name NAME                   Playlist Name
   --number NUMBER, -n NUMBER    Number of episodes to add to play list
   --debug, -d                   Debug Logging
+  --scheduled, -s				Run the script in scheduled job mode
 
 Server Connection Method:
   --server                      Server connection Method
@@ -55,3 +56,6 @@ Episodes from Season 0 are now handled differently than the parent script. Incas
 
 ### Episode Selection
 This now works differently from the parent script. The script will now ensure TV Shows are spaced out snd repetition is kept to a minimum. Each playlist entry will be from a different show if possible.
+
+### Scheduled Job Mode
+In this mode, the script will only run if 5 or less unwatched items remain in the playlist
