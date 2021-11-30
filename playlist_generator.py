@@ -18,18 +18,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 args = None
 
-# list of series to never include
-
-if os.path.isfile("blacklist.txt"):
-    logger.info("Blacklist file was found.")
-    text_file = open("blacklist.txt", "r")
-    BLACKLIST = text_file.read().splitlines()
-    text_file.close()
-else:
-    logger.info("Blacklist file NOT found. Continuing without.")
-    BLACKLIST = []
-
-
 def get_args():
     parser = argparse.ArgumentParser(description='Create playlist of unwatched episodes from random shows '
                                                  'but in correct episode order.')
@@ -48,6 +36,7 @@ def get_args():
     group_behaviour.add_argument('--include-watched', action='store_true', help='include watched episodes, in random order')
     parser.add_argument('--debug', '-d', help='Debug Logging', action="store_true")
     parser.add_argument('--scheduled', '-s', help='Run the script in scheduled job mode', action="store_true")
+    parser.add_argument('--blacklist', help='Path to "blacklist.txt" file. Default is current directory', default='./blacklist.txt')
     return parser.parse_args()
 
 def playlist_uplayed_check(playlist_items):
@@ -64,6 +53,15 @@ def playlist_uplayed_check(playlist_items):
     
     
 def get_random_episodes(all_shows, n=10):
+    # list of series to never include
+    if os.path.isfile(args.blacklist):
+        logger.info("Blacklist file was found.")
+        text_file = open(args.blacklist, "r")
+        BLACKLIST = text_file.read().splitlines()
+        text_file.close()
+    else:
+        logger.info("Blacklist file NOT found. Continuing without.")
+        BLACKLIST = []
     show_episodes = dict()
     for show in all_shows.all():
         if show.isWatched and args.include_watched is not True:
@@ -78,7 +76,7 @@ def get_random_episodes(all_shows, n=10):
                 season_episode = show_episodes[show.title][0].seasonEpisode
                 episode_title = show_episodes[show.title][0].seasonEpisode
                 show_episodes[show.title].pop(0)
-                logger.debug(f'get_random_episodes: Series 0 Episode Removed '
+                logger.debug(f'get_random_episodes: Series 0 Episode Removed: '
                              f'{show.title} - {episode_title} - {season_episode}')
         else:
             show_episodes[show.title] = show.unwatched()
@@ -89,7 +87,7 @@ def get_random_episodes(all_shows, n=10):
             if len(seasons_list) > 1 and seasons_list[0] > 0:
                 while show_episodes[show.title][0].seasonNumber == 0:
                     show_episodes[show.title].append(show_episodes[show.title][0])
-                    logger.debug(f'get_random_episodes: Series 0 Episode Appended to end of list'
+                    logger.debug(f'get_random_episodes: Series 0 Episode moved to end of list: '
                                  f'{show.title} - {show_episodes[show.title][0].seasonEpisode}')
                     show_episodes[show.title].pop(0)
     next_n = []
@@ -135,7 +133,7 @@ def main():
         exit(1)
     should_run = True
     if args.scheduled:
-    	should_run = playlist_uplayed_check(plex.playlist(title=args.name).items())
+        should_run = playlist_uplayed_check(plex.playlist(title=args.name).items())
 
     if should_run:
         episodes = get_random_episodes(plex.library.section('TV Shows'), args.number)

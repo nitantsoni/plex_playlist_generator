@@ -19,7 +19,8 @@ optional arguments:
   --name NAME                   Playlist Name
   --number NUMBER, -n NUMBER    Number of episodes to add to play list
   --debug, -d                   Debug Logging
-  --scheduled, -s				Run the script in scheduled job mode
+  --scheduled, -s		Run the script in scheduled job mode
+  --blacklist			Path to the blacklist.txt file. Default is current directory
 
 Server Connection Method:
   --server                      Server connection Method
@@ -49,7 +50,8 @@ To get your Auth token, browse to an episode in the web UI. Click on the `...` v
 popup window select `View XML` in the URL there is the `X-Plex-Token=XXXXXXXXXXXXXX`
 
 ### Blacklist
-The Blacklist array has been moved to an external file. It is now read from blacklist.txt. A sample blacklist has been included. Add your shows here and rename it to "blacklist.txt"
+The Blacklist is read from an external file. Path can be optionally specified via the `--blacklist` argument. Defaults to "./blacklist.txt". A sample blacklist has been included. Add the shows to not include here and rename it to "blacklist.txt"
+e.g. `playlist_generator.py --server --baseurl "http://172.16.1.100:32400" --token "fR5GrDxfLunKynNub5" --blacklist "path/to/blacklist.txt"`
 
 ### Season 0 Specials Handling
 Episodes from Season 0 are now handled differently than the parent script. Incase the "Include Watched" option is selected, they are not added to the final playlist. Otherwise in normal mode, they are added once all other episodes have been marked as watched.
