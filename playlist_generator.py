@@ -126,14 +126,18 @@ def main():
         token = args.token
         session = requests.session()
         # disables HTTP Cert verification
-#         session.verify = False 
+        session.verify = False 
         logger.debug(session.verify)
         plex = PlexServer(baseurl, token, session)
     else:
         exit(1)
     should_run = True
     if args.scheduled:
-        should_run = playlist_uplayed_check(plex.playlist(title=args.name).items())
+        try:
+            playlist_items = plex.playlist(title=args.name).items()
+            should_run = playlist_uplayed_check(playlist_items)
+        except NotFound as e:
+            print("Playlist Not Found. Continuing")
 
     if should_run:
         episodes = get_random_episodes(plex.library.section('TV Shows'), args.number)
